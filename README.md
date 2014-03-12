@@ -18,7 +18,7 @@ The idea of this project is being an automatic mapper from Realtime Cloud Storag
 
 <h2>Annotations</h2>
 
-<h1>How to Uses</h1>
+<h1>How to Use</h1>
 
 <h2>Maven</h2>
 
