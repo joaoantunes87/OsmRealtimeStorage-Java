@@ -195,7 +195,7 @@ public abstract class ActiveRecord {
                         // TODO Auto-generated catch block
                         e.printStackTrace();
                     }
-                } else if (f.getName().equals(this.primaryKeyName)) {
+                } else if (f.getName().equals(this.secondaryKeyName)) {
                     fieldBySecondaryKeyName = f;
                 }
             }
@@ -223,14 +223,18 @@ public abstract class ActiveRecord {
      */
     public void mapAttributesFromItemSnapshot(final ItemSnapshot itemSnapshot) {
 
-        final HashMap<String, ItemAttribute> values = itemSnapshot.val();
+        if (itemSnapshot != null) {
 
-        try {
-            clearStorageInfo();
-            this.itemRef = itemSnapshot.ref();
-            mapAttributesToInstance(ActiveRecord.convertToKeyValueAttributes(values));
-        } catch (IllegalArgumentException | IllegalAccessException e) {
-            // TODO
+            final HashMap<String, ItemAttribute> values = itemSnapshot.val();
+
+            try {
+                clearStorageInfo();
+                this.itemRef = itemSnapshot.ref();
+                mapAttributesToInstance(ActiveRecord.convertToKeyValueAttributes(values));
+            } catch (IllegalArgumentException | IllegalAccessException e) {
+                // TODO
+            }
+
         }
 
     }
