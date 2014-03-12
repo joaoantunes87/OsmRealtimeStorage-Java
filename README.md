@@ -1,11 +1,12 @@
 <h1>Introduction</h1>
 
-The idea of this project is being an automatic mapper from Realtime Cloud Storage to Plain Old Java Objects ( POJO ) with minimum efforts. You only need to define a POJO per Table, which must extends the class ActiveRecord, and configure it using the provide Annotations. With this your POJO will gain the following features:
+The idea of this project is being an automatic mapper for Realtime Cloud Storage. Mapping automatically the data retrieved from the Storage to Plain Old Java Objects ( POJO ) with minimum effort. You only need to define a POJO per Table, which must extends the class ActiveRecord, and configure it using the provided Annotations. Once this is done your POJO will gain the following features:
 
 <ul>
   <li>fetch - retrieve the item from primaryKey and secondaryKey</li>
   <li>delete - delete the item</li>
   <li>save - update or create the item</li>
+  <li>Query Features</li>
 </ul>
 
 <h1>Concepts</h1>
