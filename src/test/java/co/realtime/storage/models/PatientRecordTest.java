@@ -17,7 +17,6 @@ import co.realtime.storage.api.QueryRef;
 import co.realtime.storage.async.ActiveRecordStateFuture;
 import co.realtime.storage.async.ActiveRecordsCollectionStateFuture;
 import co.realtime.storage.ext.StorageException;
-import co.realtime.storage.models.ActiveRecord;
 
 public class PatientRecordTest {
 
@@ -82,7 +81,7 @@ public class PatientRecordTest {
         final String cpf = "200";
         final String name = "joao";
 
-        ActiveRecordStateFuture<ActiveRecord> future = null;
+        ActiveRecordStateFuture<PatientRecordSample> future = null;
 
         // create patient
         final PatientRecordSample newPatient = new PatientRecordSample();
@@ -90,39 +89,39 @@ public class PatientRecordTest {
         newPatient.setCpf(cpf);
         newPatient.setName(name);
 
-        future = newPatient.save(null, null);
+        future = (ActiveRecordStateFuture<PatientRecordSample>) newPatient.save(null, null);
         future.get();
 
         // fetch created patient
         final PatientRecordSample fetchedPatient = new PatientRecordSample();
         fetchedPatient.setCpf(cpf);
 
-        future = fetchedPatient.fetch(null, null);
+        future = (ActiveRecordStateFuture<PatientRecordSample>) fetchedPatient.fetch(null, null);
         future.get();
         assertEquals("joao", fetchedPatient.getName());
 
         // update patient
         fetchedPatient.setName("Joao Antunes");
-        future = fetchedPatient.save(null, null);
+        future = (ActiveRecordStateFuture<PatientRecordSample>) fetchedPatient.save(null, null);
         future.get();
 
         final PatientRecordSample updatedPatient = new PatientRecordSample();
         updatedPatient.setCpf(cpf);
 
-        future = updatedPatient.fetch(null, null);
+        future = (ActiveRecordStateFuture<PatientRecordSample>) updatedPatient.fetch(null, null);
         future.get();
         assertEquals("Joao Antunes", updatedPatient.getName());
 
         // delete patient
-        future = updatedPatient.delete(null, null);
+        future = (ActiveRecordStateFuture<PatientRecordSample>) updatedPatient.delete(null, null);
         future.get();
 
         final PatientRecordSample afterDelete = new PatientRecordSample();
         afterDelete.setCpf(cpf);
 
-        future = afterDelete.fetch(null, null);
+        future = (ActiveRecordStateFuture<PatientRecordSample>) afterDelete.fetch(null, null);
 
-        final ActiveRecordState<ActiveRecord> state = future.get();
+        final ActiveRecordState<PatientRecordSample> state = future.get();
         assertEquals(Boolean.TRUE, Boolean.valueOf(state.hasError()));
 
     }

@@ -16,7 +16,7 @@ public @interface StorageProperty {
      * Name.
      * @return the string
      */
-    String name();
+    String name() default "";
 
     /**
      * Checks if is primary key.

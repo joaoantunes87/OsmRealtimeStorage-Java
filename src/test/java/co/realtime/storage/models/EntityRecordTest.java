@@ -16,7 +16,6 @@ import co.realtime.storage.api.QueryRef;
 import co.realtime.storage.async.ActiveRecordStateFuture;
 import co.realtime.storage.async.ActiveRecordsCollectionStateFuture;
 import co.realtime.storage.ext.StorageException;
-import co.realtime.storage.models.ActiveRecord;
 
 public class EntityRecordTest {
 
@@ -147,7 +146,7 @@ public class EntityRecordTest {
         final String cnes = "1";
         final String cap = "C1";
 
-        ActiveRecordStateFuture<ActiveRecord> future = null;
+        ActiveRecordStateFuture<EntityRecordSample> future = null;
 
         // create entity
         final EntityRecordSample newEntity = new EntityRecordSample();
@@ -156,7 +155,7 @@ public class EntityRecordTest {
         newEntity.setCap(cap);
         newEntity.setName("Rio");
 
-        future = newEntity.save(null, null);
+        future = (ActiveRecordStateFuture<EntityRecordSample>) newEntity.save(null, null);
         future.get();
 
         // fetch created entity
@@ -164,34 +163,34 @@ public class EntityRecordTest {
         fetchedEntity.setCnes(cnes);
         fetchedEntity.setCap(cap);
 
-        future = fetchedEntity.fetch(null, null);
+        future = (ActiveRecordStateFuture<EntityRecordSample>) fetchedEntity.fetch(null, null);
         future.get();
         assertEquals("Rio", fetchedEntity.getName());
 
         // update entity
         fetchedEntity.setName("Rio Updated");
-        future = fetchedEntity.save(null, null);
+        future = (ActiveRecordStateFuture<EntityRecordSample>) fetchedEntity.save(null, null);
         future.get();
 
         final EntityRecordSample updatedEntity = new EntityRecordSample();
         updatedEntity.setCnes(cnes);
         updatedEntity.setCap(cap);
 
-        future = updatedEntity.fetch(null, null);
+        future = (ActiveRecordStateFuture<EntityRecordSample>) updatedEntity.fetch(null, null);
         future.get();
         assertEquals("Rio Updated", updatedEntity.getName());
 
         // delete entity
-        future = updatedEntity.delete(null, null);
+        future = (ActiveRecordStateFuture<EntityRecordSample>) updatedEntity.delete(null, null);
         future.get();
 
         final EntityRecordSample afterDelete = new EntityRecordSample();
         afterDelete.setCnes(cnes);
         afterDelete.setCap(cap);
 
-        future = afterDelete.fetch(null, null);
+        future = (ActiveRecordStateFuture<EntityRecordSample>) afterDelete.fetch(null, null);
 
-        final ActiveRecordState<ActiveRecord> state = future.get();
+        final ActiveRecordState<EntityRecordSample> state = future.get();
         assertEquals(Boolean.TRUE, Boolean.valueOf(state.hasError()));
 
     }

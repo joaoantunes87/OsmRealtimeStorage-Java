@@ -16,7 +16,7 @@ public @interface StorageTable {
      * Name.
      * @return the string
      */
-    String name();
+    String name() default "";
 
     /**
      * Primary key.

@@ -36,9 +36,6 @@ public enum StorageRefFactorySingleton {
     /** The Constant ENDPOINT_PROPERTY. */
     private static final String ENDPOINT_PROPERTY = "storage.endpoint";
 
-    /** The Constant MEDIA_TYPE_PROPERTY. */
-    private static final String MEDIA_TYPE_PROPERTY = "storage.media_type";
-
     // storage connection properties
     /** The application key. */
     private String applicationKey;

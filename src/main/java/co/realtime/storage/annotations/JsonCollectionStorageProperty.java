@@ -16,7 +16,7 @@ public @interface JsonCollectionStorageProperty {
      * Name.
      * @return the string
      */
-    String name();
+    String name() default "";
 
     /**
      * Klass.

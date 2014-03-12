@@ -549,7 +549,7 @@ public abstract class ActiveRecord {
      * @throws StorageException
      *             the storage exception
      */
-    public ActiveRecordStateFuture<ActiveRecord> fetch(final OnSuccessRecordCommand<? extends ActiveRecord> successCallback, final OnErrorCommand errorCallback) throws StorageException {
+    public ActiveRecordStateFuture<? extends ActiveRecord> fetch(final OnSuccessRecordCommand<? extends ActiveRecord> successCallback, final OnErrorCommand errorCallback) throws StorageException {
 
         final ActiveRecordStateFuture<ActiveRecord> future = new ActiveRecordStateFuture(successCallback, errorCallback);
 
@@ -634,7 +634,7 @@ public abstract class ActiveRecord {
      * @throws StorageException
      *             the storage exception
      */
-    public ActiveRecordStateFuture<ActiveRecord> save(final OnSuccessRecordCommand<? extends ActiveRecord> successCallback, final OnErrorCommand errorCallback) throws StorageException {
+    public ActiveRecordStateFuture<? extends ActiveRecord> save(final OnSuccessRecordCommand<? extends ActiveRecord> successCallback, final OnErrorCommand errorCallback) throws StorageException {
 
         final ActiveRecordStateFuture<ActiveRecord> future = new ActiveRecordStateFuture(successCallback, errorCallback);
 
@@ -683,7 +683,7 @@ public abstract class ActiveRecord {
      * @throws StorageException
      *             the storage exception
      */
-    public ActiveRecordStateFuture<ActiveRecord> delete(final OnSuccessRecordCommand<? extends ActiveRecord> successCallback, final OnErrorCommand errorCallback) throws StorageException {
+    public ActiveRecordStateFuture<? extends ActiveRecord> delete(final OnSuccessRecordCommand<? extends ActiveRecord> successCallback, final OnErrorCommand errorCallback) throws StorageException {
 
         final ActiveRecordStateFuture<ActiveRecord> future = new ActiveRecordStateFuture(successCallback, errorCallback);
 
