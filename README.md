@@ -43,7 +43,7 @@ In your web.xml add the following
 ```xml
     <servlet>
         <servlet-name>StorageInitializerServlet</servlet-name>
-        <servlet-class>co.reatime.storage.servlets.StorageInitializerServlet</servlet-class>
+        <servlet-class>co.realtime.storage.servlets.StorageInitializerServlet</servlet-class>
         <init-param>
             <param-name>storage.configurations.path</param-name>
             <param-value>/META-INF/realtime/storage.properties</param-value>
