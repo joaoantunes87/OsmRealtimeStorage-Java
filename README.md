@@ -96,8 +96,67 @@ public class EntityRecordSample extends ActiveRecord {
 
 ```
 
-<h2>Api</h2>
+<h2>Api - CRUD Example</h2>
 
-Check out the Unit tests at src/test/java/co/realtime/storage
+Check out the Unit tests at src/test/java/co/realtime/storage for mor details
+
+```java
+
+    @Test
+    public void aFullCrudTest() throws StorageException, InterruptedException, ExecutionException {
+
+        final String cnes = "1";
+        final String cap = "C1";
+
+        ActiveRecordStateFuture<EntityRecordSample> future = null;
+
+        // create entity
+        final EntityRecordSample newEntity = new EntityRecordSample();
+
+        newEntity.setCnes(cnes);
+        newEntity.setCap(cap);
+        newEntity.setName("Rio");
+
+        future = (ActiveRecordStateFuture<EntityRecordSample>) newEntity.save(null, null);
+        future.get();
+
+        // fetch created entity
+        final EntityRecordSample fetchedEntity = new EntityRecordSample();
+        fetchedEntity.setCnes(cnes);
+        fetchedEntity.setCap(cap);
+
+        future = (ActiveRecordStateFuture<EntityRecordSample>) fetchedEntity.fetch(null, null);
+        future.get();
+        assertEquals("Rio", fetchedEntity.getName());
+
+        // update entity
+        fetchedEntity.setName("Rio Updated");
+        future = (ActiveRecordStateFuture<EntityRecordSample>) fetchedEntity.save(null, null);
+        future.get();
+
+        final EntityRecordSample updatedEntity = new EntityRecordSample();
+        updatedEntity.setCnes(cnes);
+        updatedEntity.setCap(cap);
+
+        future = (ActiveRecordStateFuture<EntityRecordSample>) updatedEntity.fetch(null, null);
+        future.get();
+        assertEquals("Rio Updated", updatedEntity.getName());
+
+        // delete entity
+        future = (ActiveRecordStateFuture<EntityRecordSample>) updatedEntity.delete(null, null);
+        future.get();
+
+        final EntityRecordSample afterDelete = new EntityRecordSample();
+        afterDelete.setCnes(cnes);
+        afterDelete.setCap(cap);
+
+        future = (ActiveRecordStateFuture<EntityRecordSample>) afterDelete.fetch(null, null);
+
+        final ActiveRecordState<EntityRecordSample> state = future.get();
+        assertEquals(Boolean.TRUE, Boolean.valueOf(state.hasError()));
+
+    }
+    
+```
 
 <h1>Roadmap</h1>
