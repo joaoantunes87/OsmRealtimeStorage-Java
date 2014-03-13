@@ -96,9 +96,11 @@ public class EntityRecordSample extends ActiveRecord {
 
 ```
 
-<h2>Api - CRUD Example</h2>
+<h2>Api</h2>
 
 Check out the Unit tests at src/test/java/co/realtime/storage for mor details
+
+<h3>CRUD Example</h3>
 
 ```java
 
@@ -158,5 +160,23 @@ Check out the Unit tests at src/test/java/co/realtime/storage for mor details
     }
     
 ```
+
+<h3>Query Example</h3>
+
+```java
+
+    @Test
+    public void fetchAllRioCapEntities() throws InstantiationException, IllegalAccessException, StorageException, InterruptedException, ExecutionException {
+        final QueryRef<EntityRecordSample> query = (QueryRef<EntityRecordSample>) EntityRecordSample.createQuery(EntityRecordSample.class);
+        query.ref().equals("cap", new ItemAttribute("rio"));
+        final ActiveRecordsCollectionStateFuture<EntityRecordSample> future = (ActiveRecordsCollectionStateFuture<EntityRecordSample>) EntityRecordSample.executeQuery(query, null, null);
+        final ActiveRecordsCollectionState<EntityRecordSample> collectionState = future.get();
+        final List<EntityRecordSample> records = collectionState.records();
+        assertEquals(1, records.size());
+
+    }
+    
+```
+
 
 <h1>Roadmap</h1>
