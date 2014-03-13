@@ -313,10 +313,15 @@ public abstract class ActiveRecord {
                                         propertyName = storagePropertyAnnotation.name();
                                     }
                                     try {
-                                        final Object attribute = jsonItem.get(propertyName);
-                                        if (attribute != null) {
-                                            itemField.setAccessible(true);
-                                            itemField.set(itemInstance, attribute);
+
+                                        if (jsonItem.has(propertyName)) {
+
+                                            final Object attribute = jsonItem.get(propertyName);
+                                            if (attribute != null) {
+                                                itemField.setAccessible(true);
+                                                itemField.set(itemInstance, attribute);
+                                            }
+
                                         }
                                     } catch (IllegalArgumentException | IllegalAccessException e) {
                                         // TODO Auto-generated catch block
