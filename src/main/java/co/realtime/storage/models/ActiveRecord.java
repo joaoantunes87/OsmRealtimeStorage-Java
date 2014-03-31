@@ -18,6 +18,7 @@ import co.realtime.storage.StorageRef.StorageDataType;
 import co.realtime.storage.TableRef;
 import co.realtime.storage.annotations.JsonCollectionStorageProperty;
 import co.realtime.storage.annotations.StorageProperty;
+import co.realtime.storage.annotations.StoragePropertyEnum;
 import co.realtime.storage.annotations.StorageTable;
 import co.realtime.storage.api.Error;
 import co.realtime.storage.api.OnErrorCommand;
@@ -267,7 +268,9 @@ public abstract class ActiveRecord {
         // FIXME improve the code -- split it up and reuse more chunks of code
         final Field[] fields = this.getClass().getDeclaredFields();
         for (final Field f : fields) {
+
             if (f.isAnnotationPresent(StorageProperty.class)) {
+
                 final StorageProperty storagePropertyAnnotation = f.getAnnotation(StorageProperty.class);
                 String propertyName = f.getName();
                 if (storagePropertyAnnotation.name() != null && !storagePropertyAnnotation.name().isEmpty()) {
@@ -283,6 +286,26 @@ public abstract class ActiveRecord {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
+
+            } else if (f.isAnnotationPresent(StoragePropertyEnum.class)) {
+
+                final StoragePropertyEnum storagePropertyEnumAnnotation = f.getAnnotation(StoragePropertyEnum.class);
+                String propertyName = f.getName();
+                if (storagePropertyEnumAnnotation.name() != null && !storagePropertyEnumAnnotation.name().isEmpty()) {
+                    propertyName = storagePropertyEnumAnnotation.name();
+                }
+
+                try {
+                    final Object attribute = attributes.get(propertyName);
+                    if (attribute != null) {
+                        f.setAccessible(true);
+                        f.set(this, Enum.valueOf((Class<? extends Enum>) f.getType(), attribute.toString()));
+                    }
+                } catch (IllegalArgumentException | IllegalAccessException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+
             } else if (f.isAnnotationPresent(JsonCollectionStorageProperty.class)) {
 
                 // FIXME no nest resources for now
@@ -375,6 +398,27 @@ public abstract class ActiveRecord {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
+            } else if (f.isAnnotationPresent(StoragePropertyEnum.class)) {
+
+                final StoragePropertyEnum storagePropertyEnum = f.getAnnotation(StoragePropertyEnum.class);
+                String propertyName = f.getName();
+                if (storagePropertyEnum.name() != null && !storagePropertyEnum.name().isEmpty()) {
+                    propertyName = storagePropertyEnum.name();
+                }
+
+                try {
+
+                    f.setAccessible(true);
+                    final Object fieldValue = f.get(this);
+                    if (fieldValue != null) {
+                        attributes.put(propertyName, fieldValue.toString());
+                    }
+
+                } catch (IllegalArgumentException | IllegalAccessException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+
             } else if (f.isAnnotationPresent(JsonCollectionStorageProperty.class)) {
 
                 final JsonCollectionStorageProperty jsonCollectionStorageProperty = f.getAnnotation(JsonCollectionStorageProperty.class);
