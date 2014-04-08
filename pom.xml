@@ -84,4 +84,16 @@
         </pluginManagement>
     </build>
     
+    <distributionManagement>
+        <repository>
+            <id>his-releases</id>
+            <url>http://srvmaven.ad.his.pt:8081/nexus/content/repositories/releases</url>
+        </repository>
+        <snapshotRepository>
+            <id>his-snapshots</id>
+            <url>http://srvmaven.ad.his.pt:8081/nexus/content/repositories/snapshots</url>
+            <uniqueVersion>true</uniqueVersion>
+        </snapshotRepository>
+    </distributionManagement>
+    
 </project>

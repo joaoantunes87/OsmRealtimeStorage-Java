@@ -1,11 +1,14 @@
 package co.realtime.storage.models;
 
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -94,7 +97,7 @@ public abstract class ActiveRecord {
                 if (storagePropertyAnnotation.isPrimaryKey()) {
                     try {
                         f.setAccessible(true);
-                        final Object primaryKeyFieldInstance = f.getClass().newInstance();
+                        final Object primaryKeyFieldInstance = f.getType().newInstance();
                         if (primaryKeyFieldInstance instanceof Number) {
                             return StorageDataType.NUMBER;
                         }
@@ -122,7 +125,7 @@ public abstract class ActiveRecord {
                 if (storagePropertyAnnotation.isSecondaryKey()) {
                     try {
                         f.setAccessible(true);
-                        final Object secondaryKeyFieldInstance = f.getClass().newInstance();
+                        final Object secondaryKeyFieldInstance = f.getType().newInstance();
                         if (secondaryKeyFieldInstance instanceof Number) {
                             return StorageDataType.NUMBER;
                         }
@@ -276,12 +279,56 @@ public abstract class ActiveRecord {
                 if (storagePropertyAnnotation.name() != null && !storagePropertyAnnotation.name().isEmpty()) {
                     propertyName = storagePropertyAnnotation.name();
                 }
+
                 try {
+
                     final Object attribute = attributes.get(propertyName);
                     if (attribute != null) {
+
                         f.setAccessible(true);
-                        f.set(this, attribute);
+                        if (attribute instanceof Number) {
+
+                            final Class<?> fieldType = f.getType();
+                            final String fieldClassName = fieldType.getSimpleName();
+                            final Number attributeNumber = (Number) attribute;
+                            switch (fieldClassName) {
+                            case "Long":
+                                f.set(this, new Long(attributeNumber.longValue()));
+                                break;
+                            case "Byte":
+                                f.set(this, new Byte(attributeNumber.byteValue()));
+                                break;
+                            case "Double":
+                                f.set(this, new Double(attributeNumber.doubleValue()));
+                                break;
+                            case "Float":
+                                f.set(this, new Float(attributeNumber.floatValue()));
+                                break;
+                            case "Integer":
+                                f.set(this, new Integer(attributeNumber.intValue()));
+                                break;
+                            case "Short":
+                                f.set(this, new Short(attributeNumber.shortValue()));
+                                break;
+                            case "BigDecimal":
+                                f.set(this, new BigDecimal(attributeNumber.doubleValue()));
+                                break;
+                            case "AtomicInteger":
+                                f.set(this, new AtomicInteger(attributeNumber.intValue()));
+                                break;
+                            case "AtomicLong":
+                                f.set(this, new AtomicLong(attributeNumber.longValue()));
+                                break;
+                            default:
+                                break;
+                            }
+
+                        } else {
+                            f.set(this, attribute);
+                        }
+
                     }
+
                 } catch (IllegalArgumentException | IllegalAccessException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
