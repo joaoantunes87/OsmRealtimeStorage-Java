@@ -319,6 +319,9 @@ public abstract class ActiveRecord {
                             case "AtomicLong":
                                 f.set(this, new AtomicLong(attributeNumber.longValue()));
                                 break;
+                            case "String":
+                                f.set(this, attributeNumber.toString());
+                                break;
                             default:
                                 break;
                             }
@@ -531,6 +534,15 @@ public abstract class ActiveRecord {
 
     }
 
+    // callbacks
+    public void beforeSave() {
+        // TODO be implemented at Concrete Classes
+    }
+
+    public void beforeCreate() {
+        // TODO be implemented at Concrete Classes
+    }
+
     /**
      * Convert to item attributes.
      * @param keyValueAttributes
@@ -739,6 +751,12 @@ public abstract class ActiveRecord {
         final ActiveRecordStateFuture<ActiveRecord> future = new ActiveRecordStateFuture(successCallback, errorCallback);
 
         flushTableRef();
+        beforeSave();
+
+        if (!isFromStorage()) {
+            beforeCreate();
+        }
+
         final ActiveRecord weakReference = this;
 
         this.tableRef.push((LinkedHashMap<String, ItemAttribute>) convertToItemAttributes(attributes()), new OnItemSnapshot() {
