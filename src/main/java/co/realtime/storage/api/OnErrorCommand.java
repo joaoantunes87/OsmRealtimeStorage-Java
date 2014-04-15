@@ -1,5 +1,7 @@
 package co.realtime.storage.api;
 
+import co.realtime.storage.exceptions.Error;
+
 /**
  * The Class OnErrorCallback.
  */

@@ -3,6 +3,7 @@ package co.realtime.storage.api;
 import java.util.ArrayList;
 import java.util.List;
 
+import co.realtime.storage.exceptions.Error;
 import co.realtime.storage.models.ActiveRecord;
 
 /**

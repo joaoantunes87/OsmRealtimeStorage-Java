@@ -23,7 +23,6 @@ import co.realtime.storage.annotations.JsonCollectionStorageProperty;
 import co.realtime.storage.annotations.StorageProperty;
 import co.realtime.storage.annotations.StoragePropertyEnum;
 import co.realtime.storage.annotations.StorageTable;
-import co.realtime.storage.api.Error;
 import co.realtime.storage.api.OnErrorCommand;
 import co.realtime.storage.api.OnSuccessCollectionCommand;
 import co.realtime.storage.api.OnSuccessRecordCommand;
@@ -31,6 +30,9 @@ import co.realtime.storage.api.QueryRef;
 import co.realtime.storage.async.ActiveRecordStateFuture;
 import co.realtime.storage.async.ActiveRecordsCollectionStateFuture;
 import co.realtime.storage.connection.StorageRefFactorySingleton;
+import co.realtime.storage.exceptions.Error;
+import co.realtime.storage.exceptions.ErrorSourceEnum;
+import co.realtime.storage.exceptions.ErrorTypeEnum;
 import co.realtime.storage.ext.OnError;
 import co.realtime.storage.ext.OnItemSnapshot;
 import co.realtime.storage.ext.StorageException;
@@ -709,7 +711,8 @@ public abstract class ActiveRecord {
                     }
                 } else {
                     try {
-                        future.processError(new Error(Integer.valueOf(404), "No Item"));
+                        // FIXME
+                        future.processError(new Error(ErrorSourceEnum.DATA_ACCESS, ErrorTypeEnum.RESOURCE_NOT_FOUND, "Item not found"));
                     } catch (final InterruptedException e) {
                         // TODO
                     }
@@ -723,7 +726,8 @@ public abstract class ActiveRecord {
             public void run(final Integer errorCode, final String errorMessage) {
 
                 try {
-                    future.processError(new Error(errorCode, errorMessage));
+                    final String code = errorCode == null ? null : errorCode.toString();
+                    future.processError(new Error(code, errorMessage));
                 } catch (final InterruptedException e) {
                     // TODO
                 }
@@ -779,7 +783,8 @@ public abstract class ActiveRecord {
             public void run(final Integer errorCode, final String errorMessage) {
 
                 try {
-                    future.processError(new Error(errorCode, errorMessage));
+                    final String code = errorCode == null ? null : errorCode.toString();
+                    future.processError(new Error(code, errorMessage));
                 } catch (final InterruptedException e) {
                     // TODO
                 }
@@ -825,7 +830,8 @@ public abstract class ActiveRecord {
                 @Override
                 public void run(final Integer errorCode, final String errorMessage) {
                     try {
-                        future.processError(new Error(errorCode, errorMessage));
+                        final String code = errorCode == null ? null : errorCode.toString();
+                        future.processError(new Error(code, errorMessage));
                     } catch (final InterruptedException e) {
                         // TODO
                     }

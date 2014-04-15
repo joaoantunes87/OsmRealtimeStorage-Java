@@ -8,9 +8,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import co.realtime.storage.api.ActiveRecordState;
-import co.realtime.storage.api.Error;
 import co.realtime.storage.api.OnErrorCommand;
 import co.realtime.storage.api.OnSuccessRecordCommand;
+import co.realtime.storage.exceptions.Error;
 import co.realtime.storage.models.ActiveRecord;
 
 /**

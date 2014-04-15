@@ -1,5 +1,6 @@
 package co.realtime.storage.api;
 
+import co.realtime.storage.exceptions.Error;
 import co.realtime.storage.models.ActiveRecord;
 
 /**

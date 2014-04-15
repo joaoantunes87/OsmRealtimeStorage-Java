@@ -3,6 +3,7 @@ package co.realtime.storage.api;
 import co.realtime.storage.ItemSnapshot;
 import co.realtime.storage.TableRef;
 import co.realtime.storage.async.ActiveRecordsCollectionStateFuture;
+import co.realtime.storage.exceptions.Error;
 import co.realtime.storage.ext.OnError;
 import co.realtime.storage.ext.OnItemSnapshot;
 import co.realtime.storage.ext.StorageException;
@@ -92,7 +93,8 @@ public class QueryRef<R extends ActiveRecord> {
             public void run(final Integer errorCode, final String errorMessage) {
 
                 try {
-                    future.processError(new Error(errorCode, errorMessage));
+                    final String code = errorCode == null ? null : errorCode.toString();
+                    future.processError(new Error(code, errorMessage));
                 } catch (final InterruptedException e) {
                     // TODO
                 }
