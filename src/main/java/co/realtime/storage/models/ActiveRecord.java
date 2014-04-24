@@ -643,7 +643,7 @@ public abstract class ActiveRecord {
      * @throws StorageException
      *             the storage exception
      */
-    public static ActiveRecordsCollectionStateFuture<? extends ActiveRecord> executeQuery(final QueryRef<? extends ActiveRecord> query, final OnSuccessCollectionCommand<ActiveRecord> onSuccess, final OnErrorCommand onError) throws InstantiationException, IllegalAccessException, StorageException {
+    public static ActiveRecordsCollectionStateFuture<? extends ActiveRecord> executeQuery(final QueryRef<? extends ActiveRecord> query, final OnSuccessCollectionCommand<? extends ActiveRecord> onSuccess, final OnErrorCommand onError) throws InstantiationException, IllegalAccessException, StorageException {
 
         if (query == null) {
             throw new IllegalArgumentException("query argument can not be null");

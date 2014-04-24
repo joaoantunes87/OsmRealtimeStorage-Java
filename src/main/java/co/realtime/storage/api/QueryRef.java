@@ -55,7 +55,7 @@ public class QueryRef<R extends ActiveRecord> {
      *            the on error
      * @return the results
      */
-    public ActiveRecordsCollectionStateFuture<R> getResults(final OnSuccessCollectionCommand<ActiveRecord> onSuccess, final OnErrorCommand onError) {
+    public ActiveRecordsCollectionStateFuture<R> getResults(final OnSuccessCollectionCommand<? extends ActiveRecord> onSuccess, final OnErrorCommand onError) {
 
         final ActiveRecordsCollectionStateFuture<R> future = (ActiveRecordsCollectionStateFuture<R>) new ActiveRecordsCollectionStateFuture<>(onSuccess, onError);
         final Class<R> concreteRecordClass = this.klass;
