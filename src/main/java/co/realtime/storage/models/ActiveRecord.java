@@ -1,17 +1,8 @@
 package co.realtime.storage.models;
 
 import java.lang.reflect.Field;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
+import java.util.Map;
 
 import co.realtime.storage.ItemAttribute;
 import co.realtime.storage.ItemRef;
@@ -19,9 +10,8 @@ import co.realtime.storage.ItemSnapshot;
 import co.realtime.storage.StorageRef;
 import co.realtime.storage.StorageRef.StorageDataType;
 import co.realtime.storage.TableRef;
-import co.realtime.storage.annotations.JsonCollectionStorageProperty;
+import co.realtime.storage.annotations.StorageAnnotationsManager;
 import co.realtime.storage.annotations.StorageProperty;
-import co.realtime.storage.annotations.StoragePropertyEnum;
 import co.realtime.storage.annotations.StorageTable;
 import co.realtime.storage.api.OnErrorCommand;
 import co.realtime.storage.api.OnSuccessCollectionCommand;
@@ -231,7 +221,7 @@ public abstract class ActiveRecord {
 
         if (itemSnapshot != null) {
 
-            final HashMap<String, ItemAttribute> values = itemSnapshot.val();
+            final Map<String, ItemAttribute> values = itemSnapshot.val();
 
             try {
                 clearStorageInfo();
@@ -268,272 +258,16 @@ public abstract class ActiveRecord {
      * @param attributes
      *            the attributes
      */
-    public void mapAttributesToInstance(final HashMap<String, Object> attributes) {
-
-        // FIXME improve the code -- split it up and reuse more chunks of code
-        final Field[] fields = this.getClass().getDeclaredFields();
-        for (final Field f : fields) {
-
-            if (f.isAnnotationPresent(StorageProperty.class)) {
-
-                final StorageProperty storagePropertyAnnotation = f.getAnnotation(StorageProperty.class);
-                String propertyName = f.getName();
-                if (storagePropertyAnnotation.name() != null && !storagePropertyAnnotation.name().isEmpty()) {
-                    propertyName = storagePropertyAnnotation.name();
-                }
-
-                try {
-
-                    final Object attribute = attributes.get(propertyName);
-                    if (attribute != null) {
-
-                        f.setAccessible(true);
-                        if (attribute instanceof Number) {
-
-                            final Class<?> fieldType = f.getType();
-                            final String fieldClassName = fieldType.getSimpleName();
-                            final Number attributeNumber = (Number) attribute;
-                            switch (fieldClassName) {
-                            case "Long":
-                                f.set(this, new Long(attributeNumber.longValue()));
-                                break;
-                            case "Byte":
-                                f.set(this, new Byte(attributeNumber.byteValue()));
-                                break;
-                            case "Double":
-                                f.set(this, new Double(attributeNumber.doubleValue()));
-                                break;
-                            case "Float":
-                                f.set(this, new Float(attributeNumber.floatValue()));
-                                break;
-                            case "Integer":
-                                f.set(this, new Integer(attributeNumber.intValue()));
-                                break;
-                            case "Short":
-                                f.set(this, new Short(attributeNumber.shortValue()));
-                                break;
-                            case "BigDecimal":
-                                f.set(this, new BigDecimal(attributeNumber.doubleValue()));
-                                break;
-                            case "AtomicInteger":
-                                f.set(this, new AtomicInteger(attributeNumber.intValue()));
-                                break;
-                            case "AtomicLong":
-                                f.set(this, new AtomicLong(attributeNumber.longValue()));
-                                break;
-                            case "String":
-                                f.set(this, attributeNumber.toString());
-                                break;
-                            default:
-                                break;
-                            }
-
-                        } else {
-                            f.set(this, attribute);
-                        }
-
-                    }
-
-                } catch (IllegalArgumentException | IllegalAccessException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-
-            } else if (f.isAnnotationPresent(StoragePropertyEnum.class)) {
-
-                final StoragePropertyEnum storagePropertyEnumAnnotation = f.getAnnotation(StoragePropertyEnum.class);
-                String propertyName = f.getName();
-                if (storagePropertyEnumAnnotation.name() != null && !storagePropertyEnumAnnotation.name().isEmpty()) {
-                    propertyName = storagePropertyEnumAnnotation.name();
-                }
-
-                try {
-                    final Object attribute = attributes.get(propertyName);
-                    if (attribute != null) {
-                        f.setAccessible(true);
-                        f.set(this, Enum.valueOf((Class<? extends Enum>) f.getType(), attribute.toString()));
-                    }
-                } catch (IllegalArgumentException | IllegalAccessException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-
-            } else if (f.isAnnotationPresent(JsonCollectionStorageProperty.class)) {
-
-                // FIXME no nest resources for now
-                final JsonCollectionStorageProperty jsonCollectionStoragePropertyAnnotation = f.getAnnotation(JsonCollectionStorageProperty.class);
-                String collectionName = f.getName();
-                if (jsonCollectionStoragePropertyAnnotation.name() != null && !jsonCollectionStoragePropertyAnnotation.name().isEmpty()) {
-                    collectionName = jsonCollectionStoragePropertyAnnotation.name();
-                }
-
-                f.setAccessible(true);
-                final List items = new ArrayList<>();
-
-                try {
-                    final String jsonItemsAsString = (String) attributes.get(collectionName);
-                    if (jsonItemsAsString != null && !jsonItemsAsString.isEmpty()) {
-                        final JSONArray jsonItems = new JSONArray(jsonItemsAsString);
-                        for (int i = 0; i < jsonItems.length(); i++) {
-                            final JSONObject jsonItem = jsonItems.getJSONObject(i);
-                            final Class<?> klass = jsonCollectionStoragePropertyAnnotation.klass();
-                            final Object itemInstance = klass.newInstance();
-                            final Field[] itemFields = klass.getDeclaredFields();
-                            for (final Field itemField : itemFields) {
-
-                                if (itemField.isAnnotationPresent(StorageProperty.class)) {
-                                    final StorageProperty storagePropertyAnnotation = itemField.getAnnotation(StorageProperty.class);
-                                    String propertyName = itemField.getName();
-                                    if (storagePropertyAnnotation.name() != null && !storagePropertyAnnotation.name().isEmpty()) {
-                                        propertyName = storagePropertyAnnotation.name();
-                                    }
-                                    try {
-
-                                        if (jsonItem.has(propertyName)) {
-
-                                            final Object attribute = jsonItem.get(propertyName);
-                                            if (attribute != null) {
-                                                itemField.setAccessible(true);
-                                                itemField.set(itemInstance, attribute);
-                                            }
-
-                                        }
-                                    } catch (IllegalArgumentException | IllegalAccessException e) {
-                                        // TODO Auto-generated catch block
-                                        e.printStackTrace();
-                                    }
-                                }
-
-                            }
-                            items.add(itemInstance);
-                        }
-                    }
-                    f.set(this, items);
-                } catch (IllegalArgumentException | IllegalAccessException | InstantiationException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-
-            }
-        }
-
+    public void mapAttributesToInstance(final Map<String, Object> attributes) {
+        StorageAnnotationsManager.mapAttributesToInstance(this, attributes);
     }
 
     /**
      * Attributes.
      * @return the hash map
      */
-    public HashMap<String, Object> attributes() {
-
-        // FIXME improve this code to reuse duplicated code and be more clean
-
-        final HashMap<String, Object> attributes = new LinkedHashMap<>(0);
-        final Field[] fields = this.getClass().getDeclaredFields();
-
-        for (final Field f : fields) {
-
-            if (f.isAnnotationPresent(StorageProperty.class)) {
-                final StorageProperty storagePropertyAnnotation = f.getAnnotation(StorageProperty.class);
-                String propertyName = f.getName();
-                if (storagePropertyAnnotation.name() != null && !storagePropertyAnnotation.name().isEmpty()) {
-                    propertyName = storagePropertyAnnotation.name();
-                }
-                try {
-
-                    f.setAccessible(true);
-                    final Object fieldValue = f.get(this);
-                    if (fieldValue != null) {
-                        attributes.put(propertyName, fieldValue);
-                    }
-
-                } catch (IllegalArgumentException | IllegalAccessException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-            } else if (f.isAnnotationPresent(StoragePropertyEnum.class)) {
-
-                final StoragePropertyEnum storagePropertyEnum = f.getAnnotation(StoragePropertyEnum.class);
-                String propertyName = f.getName();
-                if (storagePropertyEnum.name() != null && !storagePropertyEnum.name().isEmpty()) {
-                    propertyName = storagePropertyEnum.name();
-                }
-
-                try {
-
-                    f.setAccessible(true);
-                    final Object fieldValue = f.get(this);
-                    if (fieldValue != null) {
-                        attributes.put(propertyName, fieldValue.toString());
-                    }
-
-                } catch (IllegalArgumentException | IllegalAccessException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-
-            } else if (f.isAnnotationPresent(JsonCollectionStorageProperty.class)) {
-
-                final JsonCollectionStorageProperty jsonCollectionStorageProperty = f.getAnnotation(JsonCollectionStorageProperty.class);
-                String propertyName = f.getName();
-                if (jsonCollectionStorageProperty.name() != null && !jsonCollectionStorageProperty.name().isEmpty()) {
-                    propertyName = jsonCollectionStorageProperty.name();
-                }
-
-                try {
-
-                    f.setAccessible(true);
-                    final Collection<?> items = (Collection<?>) f.get(this);
-
-                    if (items != null) {
-
-                        final JSONArray array = new JSONArray();
-                        for (final Object item : items) {
-
-                            final JSONObject jsonItem = new JSONObject();
-                            final Field[] itemFields = item.getClass().getDeclaredFields();
-                            for (final Field itemField : itemFields) {
-
-                                if (itemField.isAnnotationPresent(StorageProperty.class)) {
-                                    final StorageProperty storagePropertyAnnotation = itemField.getAnnotation(StorageProperty.class);
-                                    String fieldPropertyName = itemField.getName();
-                                    if (storagePropertyAnnotation.name() != null && !storagePropertyAnnotation.name().isEmpty()) {
-                                        fieldPropertyName = storagePropertyAnnotation.name();
-                                    }
-
-                                    try {
-
-                                        itemField.setAccessible(true);
-                                        final Object fieldValue = itemField.get(item);
-                                        if (fieldValue != null) {
-                                            jsonItem.put(fieldPropertyName, fieldValue);
-                                        }
-
-                                    } catch (IllegalArgumentException | IllegalAccessException e) {
-                                        // TODO Auto-generated catch block
-                                        e.printStackTrace();
-                                    }
-                                }
-
-                            }
-
-                            array.put(jsonItem);
-
-                        }
-
-                        attributes.put(propertyName, array.toString());
-
-                    }
-
-                } catch (IllegalArgumentException | IllegalAccessException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-
-            }
-        }
-
-        return attributes;
-
+    public Map<String, Object> attributes() {
+        return StorageAnnotationsManager.activeRecordToAttributes(this);
     }
 
     // callbacks
@@ -551,9 +285,9 @@ public abstract class ActiveRecord {
      *            the key value attributes
      * @return the hash map
      */
-    private static HashMap<String, ItemAttribute> convertToItemAttributes(final HashMap<String, Object> keyValueAttributes) {
+    private static Map<String, ItemAttribute> convertToItemAttributes(final Map<String, Object> keyValueAttributes) {
 
-        final HashMap<String, ItemAttribute> attributes = new LinkedHashMap<>(0);
+        final Map<String, ItemAttribute> attributes = new LinkedHashMap<>(0);
         if (keyValueAttributes != null && !keyValueAttributes.isEmpty()) {
             for (final String key : keyValueAttributes.keySet()) {
                 final Object value = keyValueAttributes.get(key);
@@ -577,9 +311,9 @@ public abstract class ActiveRecord {
      *            the attributes
      * @return the hash map
      */
-    static HashMap<String, Object> convertToKeyValueAttributes(final HashMap<String, ItemAttribute> attributes) {
+    static Map<String, Object> convertToKeyValueAttributes(final Map<String, ItemAttribute> attributes) {
 
-        final HashMap<String, Object> keyValueAttributes = new LinkedHashMap<>(0);
+        final Map<String, Object> keyValueAttributes = new LinkedHashMap<>(0);
         if (attributes != null && !attributes.isEmpty()) {
             for (final String key : attributes.keySet()) {
                 final ItemAttribute attribute = attributes.get(key);
