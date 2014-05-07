@@ -266,7 +266,7 @@ public abstract class ActiveRecord {
      * Attributes.
      * @return the hash map
      */
-    public Map<String, Object> attributes() {
+    public Map<String, ItemAttribute> attributes() {
         return StorageAnnotationsManager.activeRecordToAttributes(this);
     }
 
@@ -277,32 +277,6 @@ public abstract class ActiveRecord {
 
     public void beforeCreate() {
         // TODO be implemented at Concrete Classes
-    }
-
-    /**
-     * Convert to item attributes.
-     * @param keyValueAttributes
-     *            the key value attributes
-     * @return the hash map
-     */
-    private static Map<String, ItemAttribute> convertToItemAttributes(final Map<String, Object> keyValueAttributes) {
-
-        final Map<String, ItemAttribute> attributes = new LinkedHashMap<>(0);
-        if (keyValueAttributes != null && !keyValueAttributes.isEmpty()) {
-            for (final String key : keyValueAttributes.keySet()) {
-                final Object value = keyValueAttributes.get(key);
-                if (value != null) {
-                    if (value instanceof String) {
-                        attributes.put(key, new ItemAttribute((String) value));
-                    } else if (value instanceof Number) {
-                        attributes.put(key, new ItemAttribute((Number) value));
-                    }
-                }
-            }
-        }
-
-        return attributes;
-
     }
 
     /**
@@ -497,7 +471,7 @@ public abstract class ActiveRecord {
 
         final ActiveRecord weakReference = this;
 
-        this.tableRef.push((LinkedHashMap<String, ItemAttribute>) convertToItemAttributes(attributes()), new OnItemSnapshot() {
+        this.tableRef.push((LinkedHashMap<String, ItemAttribute>) attributes(), new OnItemSnapshot() {
 
             @Override
             public void run(final ItemSnapshot itemSnapshot) {
