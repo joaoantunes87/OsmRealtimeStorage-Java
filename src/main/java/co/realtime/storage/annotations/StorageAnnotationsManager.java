@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -15,7 +16,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import co.realtime.storage.ItemAttribute;
-import co.realtime.storage.models.ActiveRecord;
+import co.realtime.storage.utils.TypeValidatorUtils;
 
 /**
  * The Class StorageAnnotationsManager.
@@ -29,7 +30,7 @@ public class StorageAnnotationsManager {
      * @param attributes
      *            the attributes
      */
-    public static void mapAttributesToInstance(final ActiveRecord instance, final Map<String, Object> attributes) {
+    public static void mapAttributesToInstance(final Object instance, final Map<String, Object> attributes) {
 
         final Field[] fields = instance.getClass().getDeclaredFields();
 
@@ -37,23 +38,17 @@ public class StorageAnnotationsManager {
 
             if (isFieldStorageProperty(f)) {
 
-                final String propertyName = calculatePropertyNameField(f);
-                if (propertyName != null && !propertyName.isEmpty() && attributes.containsKey(propertyName)) {
+                final Object value = calculateValueToField(f, attributes);
 
-                    final Object attribute = attributes.get(propertyName);
-                    final Object value = calculateValueToField(f, attribute);
+                if (value != null) {
 
-                    if (value != null) {
+                    f.setAccessible(true);
 
-                        f.setAccessible(true);
-
-                        try {
-                            f.set(instance, value);
-                        } catch (IllegalArgumentException | IllegalAccessException e) {
-                            // TODO Auto-generated catch block
-                            e.printStackTrace();
-                        }
-
+                    try {
+                        f.set(instance, value);
+                    } catch (IllegalArgumentException | IllegalAccessException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
                     }
 
                 }
@@ -66,35 +61,21 @@ public class StorageAnnotationsManager {
 
     /**
      * Active record to attributes.
-     * @param record
-     *            the record
+     * @param instance
+     *            the instance
      * @return the map
      */
-    public static Map<String, ItemAttribute> activeRecordToAttributes(final ActiveRecord record) {
+    public static Map<String, ItemAttribute> instanceToAttributes(final Object instance) {
 
         final HashMap<String, ItemAttribute> attributes = new LinkedHashMap<>(0);
-        final Field[] fields = record.getClass().getDeclaredFields();
+        final Field[] fields = instance.getClass().getDeclaredFields();
 
         for (final Field f : fields) {
 
             if (isFieldStorageProperty(f)) {
 
-                final String propertyName = calculatePropertyNameField(f);
-                if (propertyName != null && !propertyName.isEmpty()) {
-
-                    try {
-
-                        final ItemAttribute value = buildItemAttributeFromField(f, record);
-                        if (value != null) {
-                            attributes.put(propertyName, value);
-                        }
-
-                    } catch (final IllegalArgumentException illegalArgumentException) {
-                        // TODO Auto-generated catch block
-                        illegalArgumentException.printStackTrace();
-                    }
-
-                }
+                final Map<String, ItemAttribute> values = buildItemAttributesFromField(f, instance);
+                attributes.putAll(values);
 
             }
 
@@ -112,20 +93,20 @@ public class StorageAnnotationsManager {
      *            the instance
      * @return the item attribute
      */
-    private static ItemAttribute buildItemAttributeFromField(final Field f, final Object instance) {
+    private static Map<String, ItemAttribute> buildItemAttributesFromField(final Field f, final Object instance) {
 
         try {
             f.setAccessible(true);
             final Object value = f.get(instance);
             if (value != null) {
-                return buildItemAttributeFromValue(convertFieldToObject(f, instance));
+                return buildItemAttributesFromValue(f, prepareFieldToStorage(f, instance));
             }
         } catch (IllegalArgumentException | IllegalAccessException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
 
-        return null;
+        return Collections.emptyMap();
 
     }
 
@@ -167,6 +148,8 @@ public class StorageAnnotationsManager {
                 jsonArray.put(jsonField);
             }
             return jsonArray;
+        } else if (f.isAnnotationPresent(EmbeddedStorageProperties.class)) {
+            return value;
         }
 
         return null;
@@ -174,21 +157,67 @@ public class StorageAnnotationsManager {
     }
 
     /**
+     * Prepare field to storage.
+     * @param f
+     *            the f
+     * @param instance
+     *            the instance
+     * @return the object
+     */
+    private static Object prepareFieldToStorage(final Field f, final Object instance) {
+
+        Object value = null;
+        if (instance != null && f != null) {
+
+            value = convertFieldToObject(f, instance);
+            if (value != null) {
+
+                if (f.isAnnotationPresent(JsonStorageProperty.class) || f.isAnnotationPresent(JsonCollectionStorageProperty.class)) {
+                    return value.toString();
+                }
+
+            }
+
+        }
+
+        return value;
+
+    }
+
+    /**
      * Builds the item attribute from value.
+     * @param f
+     *            the f
      * @param value
      *            the value
      * @return the item attribute
      */
-    private static ItemAttribute buildItemAttributeFromValue(final Object value) {
+    private static Map<String, ItemAttribute> buildItemAttributesFromValue(final Field f, final Object value) {
+
+        Map<String, ItemAttribute> attributes = new HashMap<>();
 
         if (value != null) {
+
+            // is a Number
             if (value instanceof Number) {
-                return new ItemAttribute((Number) value);
+                final String propertyName = calculatePropertyNameField(f);
+                if (propertyName != null && !propertyName.isEmpty()) {
+                    attributes.put(propertyName, new ItemAttribute((Number) value));
+                }
+                // is not a number but is a primitive value or a String
+            } else if (TypeValidatorUtils.isWrapperType(value.getClass()) || value instanceof String) {
+                final String propertyName = calculatePropertyNameField(f);
+                if (propertyName != null && !propertyName.isEmpty()) {
+                    attributes.put(propertyName, new ItemAttribute(value.toString()));
+                }
+                // is a complex object
+            } else {
+                attributes = instanceToAttributes(value);
             }
-            return new ItemAttribute(value.toString());
+
         }
 
-        return null;
+        return attributes;
 
     }
 
@@ -218,24 +247,39 @@ public class StorageAnnotationsManager {
      * Calculate value to field.
      * @param f
      *            the f
-     * @param attribute
-     *            the attribute
+     * @param attributes
+     *            the attributes
      * @return the object
      */
-    public static Object calculateValueToField(final Field f, final Object attribute) {
+    public static Object calculateValueToField(final Field f, final Map<String, Object> attributes) {
 
         Object value = null;
 
+        final String propertyName = calculatePropertyNameField(f);
+        Object attribute = null;
+        if (propertyName != null && !propertyName.isEmpty() && attributes.containsKey(propertyName)) {
+            attribute = attributes.get(propertyName);
+        }
+
         if (f.isAnnotationPresent(StorageProperty.class)) {
-            value = calculateValueToSimpleStorageProperty(f, attribute);
+            value = attribute == null ? null : calculateValueToSimpleStorageProperty(f, attribute);
         } else if (f.isAnnotationPresent(StoragePropertyEnum.class)) {
-            value = calculateValueToStoragePropertyEnum(f, attribute);
+            value = attribute == null ? null : calculateValueToStoragePropertyEnum(f, attribute);
         } else if (f.isAnnotationPresent(JsonStorageProperty.class)) {
-            value = calculateValueToJsonStorageProperty(f, attribute.toString());
+            value = attribute == null ? null : calculateValueToJsonStorageProperty(f, attribute.toString());
         } else if (f.isAnnotationPresent(JsonCollectionStorageProperty.class)) {
             final JsonCollectionStorageProperty jsonCollectionStoragePropertyAnnotation = f.getAnnotation(JsonCollectionStorageProperty.class);
             final Class<?> klass = jsonCollectionStoragePropertyAnnotation.klass();
-            value = calculateValueToJsonCollectionStorageProperty(f, (String) attribute, klass);
+            value = attribute == null ? null : calculateValueToJsonCollectionStorageProperty(f, (String) attribute, klass);
+        } else if (f.isAnnotationPresent(EmbeddedStorageProperties.class)) {
+            final Class<?> klass = f.getType();
+            try {
+                value = klass.newInstance();
+                mapAttributesToInstance(value, attributes);
+            } catch (InstantiationException | IllegalAccessException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
         }
 
         return value;
@@ -299,11 +343,7 @@ public class StorageAnnotationsManager {
             return false;
         }
 
-        if (f.isAnnotationPresent(StorageProperty.class) || f.isAnnotationPresent(StoragePropertyEnum.class) || f.isAnnotationPresent(JsonStorageProperty.class) || f.isAnnotationPresent(JsonCollectionStorageProperty.class)) {
-            return true;
-        }
-
-        return false;
+        return f.isAnnotationPresent(StorageProperty.class) || f.isAnnotationPresent(StoragePropertyEnum.class) || f.isAnnotationPresent(JsonStorageProperty.class) || f.isAnnotationPresent(JsonCollectionStorageProperty.class) || f.isAnnotationPresent(EmbeddedStorageProperties.class);
 
     }
 
@@ -421,9 +461,11 @@ public class StorageAnnotationsManager {
                     if (jsonObject.has(propertyName)) {
 
                         final Object attribute = jsonObject.get(propertyName);
+                        final Map<String, Object> attributes = new HashMap<>();
+                        attributes.put(propertyName, attribute);
 
                         if (attribute != null) {
-                            final Object value = calculateValueToField(itemField, attribute);
+                            final Object value = calculateValueToField(itemField, attributes);
                             itemField.setAccessible(true);
                             itemField.set(itemInstance, value);
                         }

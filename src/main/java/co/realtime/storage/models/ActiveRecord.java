@@ -267,7 +267,7 @@ public abstract class ActiveRecord {
      * @return the hash map
      */
     public Map<String, ItemAttribute> attributes() {
-        return StorageAnnotationsManager.activeRecordToAttributes(this);
+        return StorageAnnotationsManager.instanceToAttributes(this);
     }
 
     // callbacks
