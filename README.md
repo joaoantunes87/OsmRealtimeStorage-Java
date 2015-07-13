@@ -12,16 +12,21 @@ The idea of this project is create an automatic mapper for <a href="http://frame
 <h1>Concepts</h1>
 
 <h2>ActiveRecord</h2>
+TBD
 
 <h2>NoSQL</h2>
+TBD
 
 <h2>Realtime Cloud Storage</h2>
+TBD
 
 <h2>Annotations</h2>
+TBD
 
 <h1>How to Use</h1>
 
 <h2>Maven</h2>
+Not Yet Created
 
 <h2>Configurations</h2>
 
